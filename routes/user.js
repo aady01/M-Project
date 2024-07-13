@@ -54,7 +54,7 @@ router.get("/logout", (req, res, next) => {
     if (err) {
       next(err);
     }
-    res.flash("success", "You are logged out!");
+    req.flash("success", "You are logged out!");
     res.redirect("/listings");
   });
 });

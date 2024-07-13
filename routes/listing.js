@@ -2,8 +2,16 @@ const express = require("express");
 const router = express.Router();
 const wrapAsync = require("../utils/wrapAsync");
 const Listing = require("../models/listing");
-const { isLoggedIn, isOwner } = require("../middleware");
-const { validateListing } = require("../middleware");
+const { isOwner, validateListing } = require("../middleware");
+const { isLoggedIn } = require("../middleware");
+
+// Log the imports to check if they are correctly imported
+console.log({ wrapAsync, Listing, isLoggedIn, isOwner, validateListing });
+
+// Simplified route for testing
+router.get("/test", (req, res) => {
+  res.send("Test route working");
+});
 
 //Index Route
 router.get(
