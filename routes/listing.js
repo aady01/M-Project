@@ -5,23 +5,34 @@ const Listing = require("../models/listing");
 const { isOwner, validateListing } = require("../middleware");
 const { isLoggedIn } = require("../middleware");
 const listingController = require("../controllers/listings");
+const multer = require("multer");
+const { storage } = require("../CloudConfig");
+const upload = multer({ storage });
 
-//Index Route
-router.get("/", wrapAsync(listingController.index));
+router
+  .route("/")
+  .get(wrapAsync(listingController.index))
+  .post(
+    isLoggedIn,
+    upload.single("listing[image]"),
+    validateListing,
+    wrapAsync(listingController.createListing)
+  );
 
 // New Route
 router.get("/new", isLoggedIn, listingController.renderNewForm);
 
-//Show Route
-router.get("/:id", wrapAsync(listingController.showListing));
-
-// Create Route
-router.post(
-  "/",
-  validateListing,
-  isLoggedIn,
-  wrapAsync(listingController.createListing)
-);
+router
+  .route("/:id")
+  .get(wrapAsync(listingController.showListing))
+  .put(
+    isLoggedIn,
+    isOwner,
+    upload.single("listing[image]"),
+    validateListing,
+    wrapAsync(listingController.updateListing)
+  )
+  .delete(isLoggedIn, wrapAsync(listingController.destroyListing));
 
 //Edit Route
 router.get(
@@ -29,17 +40,5 @@ router.get(
   isLoggedIn,
   wrapAsync(listingController.renderEditForm)
 );
-
-//Update Route
-router.put(
-  "/:id",
-  isLoggedIn,
-  isOwner,
-  validateListing,
-  wrapAsync(listingController.updateListing)
-);
-
-//Delete Route
-router.delete("/:id", isLoggedIn, wrapAsync(listingController.destroyListing));
 
 module.exports = router;

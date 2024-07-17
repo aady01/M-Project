@@ -33,12 +33,11 @@ module.exports.showListing = async (req, res) => {
 };
 
 module.exports.createListing = async (req, res, next) => {
-  console.log(req.body); // Log the received form data to debug
-  if (req.body.listing.image === "") {
-    req.body.listing.image = undefined; // Handle empty string
-  }
+  let url = req.file.path;
+  let filename = req.file.filename;
   const newListing = new Listing(req.body.listing);
   newListing.owner = req.user._id;
+  newListing.image = { url, filename };
   await newListing.save();
   req.flash("success", "New Listing Created!");
   res.redirect("/listings");
@@ -51,22 +50,22 @@ module.exports.renderEditForm = async (req, res) => {
     req.flash("error", "Listing Does Not Exist");
     res.redirect("/listings");
   }
+
+  let originalImage = listing.image.url;
+  originalImageUrl = originalImage.replace("/upload", "/upload/h_300,w_250");
   res.render("listings/edit", { listing });
 };
 
 module.exports.updateListing = async (req, res) => {
   const { id } = req.params;
-  let updatedListing = req.body.listing;
+  let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
 
-  if (typeof updatedListing.image === "string") {
-    try {
-      updatedListing.image = JSON.parse(updatedListing.image);
-    } catch (error) {
-      console.error("Failed to parse image field:", error);
-    }
+  if (typeof req.file !== "undefined") {
+    let url = req.file.path;
+    let filename = req.file.filename;
+    listing.image = { url, filename };
+    await listing.save();
   }
-
-  await Listing.findByIdAndUpdate(id, updatedListing);
   req.flash("success", "Listing Updated!");
   res.redirect(`/listings/${id}`);
 };
